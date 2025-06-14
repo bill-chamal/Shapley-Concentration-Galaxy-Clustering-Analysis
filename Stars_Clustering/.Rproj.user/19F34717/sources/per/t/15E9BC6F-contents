@@ -1,0 +1,157 @@
+---
+title: "Laptop Price Comparison Clustering"
+author: "Georgios Varatis (iis22053)"
+date: "2025-06-05"
+output: 
+   html_document:
+     theme: darkly
+     highlight: tango
+     toc: true
+     toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r load, include=FALSE}
+laptopData <- read.csv("C:\\Users\\30690\\Desktop\\Epixeirhmatikh_analytikh\\datasets\\laptopData(1.0).csv")
+laptopData$Weight <- as.numeric(as.character(laptopData$Weight))
+library(magrittr)
+library(dplyr)
+library(kableExtra)
+library(ggplot2)
+library(corrplot)
+library(dplyr)
+library(tidyr)
+library(caTools)
+library(rpart)
+library(rpart.plot)
+library(ROCR)
+
+
+# Set your price threshold
+threshold <- 800  # adjust based on your data
+
+# Create a new 'Expensive' column (1 if above threshold, 0 otherwise)
+laptopData$IsExpensive <- ifelse(laptopData$Price > threshold, 1, 0)
+
+```
+
+## 🔹 Περιγραφή του συνόλου δεδομένων
+
+  Το επιλεγμένο σύνολο δεδομένων περιέχει πληροφορίες σχετικά με διάφορα μοντέλα **φορητών υπολογιστών**, τις **προδιαγραφές** τους και τις αντίστοιχες **τιμές** τους. Είναι χρήσιμο για την ανάλυση του τρόπου με τον οποίο διάφορα **χαρακτηριστικά** (όπως η μάρκα, το μέγεθος της οθόνης, η μνήμη RAM και ο επεξεργαστής) **επηρεάζουν** την **τιμή** ενός φορητού υπολογιστή. Αυτό το σύνολο δεδομένων μπορεί να βοηθήσει τις επιχειρήσεις, τους καταναλωτές και τους αναλυτές να κατανοήσουν τις **τάσεις** της αγοράς και τις **στρατηγικές** τιμολόγησης.
+  
+  [Link for the dataset(Kaggle.com)](https://www.kaggle.com/datasets/ehtishamsadiq/uncleaned-laptop-price-dataset)
+
+
+## 🔹 Αρχική διερεύνηση του συνόλου
+
+1. **Μετατροπή των Inches και RAM.**  
+   Στο αρχικό Dataset, τα attributes **Inches**, **Weight** και **RAM** ήταν τύπου **Categorical**, παρά το γεγονός ότι ήταν νούμερα.  
+   Έγινε η μετατροπή τους σε **Numeric** για την καλύτερη ερμηνεία του συνόλου.
+
+2. **Μετατροπή των τιμών.**  
+   Οι τιμές των φορητών υπολογιστών ήταν εκφρασμένες σε **Ρουπία Ινδίας**.  
+   Αυτές μετατράπηκαν σε **ευρώ** και έγινε στρογγυλοποίηση των **2 δεκαδικών στοιχείων** για καλύτερη κατανόηση του συνόλου.
+
+3. **Έλεγχος και χειρισμός ελλιπών τιμών.**  
+   Τα αντικείμενα του συνόλου δεδομένων ήταν **1303**.  
+   Μετά τον έλεγχο για **διπλότυπα** και την **αφαίρεση των ελλιπών τιμών**,  
+   έμειναν **1273 αντικείμενα**.
+   
+   ![***Εικόνα 1:** OpenRefine Preproccesing Steps*](C:/Users/30690/Desktop/Epixeirhmatikh_analytikh/photos/OpenRefine_steps.png)
+   
+### Χαρακτηριστικά του συνόλου
+
+```{r characteristics, include = FALSE}
+df <- data.frame(
+  Χαρακτηριστικό = c("Εταιρεία", "TypeName", "Inches", "ScreenResolution", "CPU", 
+                     "RAM", "Μνήμη", "GPU","Βάρος", "Λειτουργικό Σύστημα", "Τιμή", "IsExpensive"),
+  Περιγραφή = c(
+    "Η μάρκα του φορητού υπολογιστή (π.χ. Dell, HP, Apple).",
+    "Η κατηγορία/ο τύπος του φορητού υπολογιστή (π.χ. Gaming, Ultrabook, Notebook).",
+    "Το μέγεθος της οθόνης του φορητού υπολογιστή σε ίντσες.",
+    "Η ανάλυση της οθόνης (π.χ. 1920x1080, 4K).",
+    "Τα στοιχεία του επεξεργαστή (π.χ. Intel Core i5, AMD Ryzen 7).",
+    "Η ποσότητα της μνήμης τυχαίας προσπέλασης (RAM) σε gigabytes (GB).",
+    "Ο τύπος και το μέγεθος του αποθηκευτικού χώρου (π.χ. 256 GB SSD, 1 TB HDD).",
+    "Η μονάδα επεξεργασίας γραφικών (π.χ. NVIDIA GTX 1650, Intel HD Graphics).",
+    "Το βάρος του φορητού υπολογιστή σε κιλά(kg).",
+    "Το λειτουργικό σύστημα του φορητού υπολογιστή (π.χ. Windows, macOS, Linux).",
+    "Η τιμή του φορητού υπολογιστή σε Ευρώ.",
+    "Κατηγοριοποιεί τα λάπτοπ σε ακριβά και μη ακριβά εάν η τιμή τους ξεπερνάει τα 800 ευρώ"
+  ),
+  Τύπος = c("Categorical", "Categorical", "Numeric", "Categorical", "Categorical",
+            "Numeric", "Categorical","Categorical", "Numeric", "Categorical", "Numeric", "Boolean")
+)
+```
+```{r show_table}
+kable(df, format = "html", align = "c", escape = FALSE) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                full_width = FALSE, position = "center") %>%
+  column_spec(3, bold = TRUE)
+```
+
+
+## 🔹 Επιλογή και Κανονικοποίηση Μεταβλητών
+
+Για την ανάλυση clustering επιλέχθηκαν οι μεταβλητές **Ram** και **Weight**, καθώς είναι αριθμητικές και ενδέχεται να αποκαλύψουν ομάδες laptops με **παρόμοια χαρακτηριστικά**. Πραγματοποιήθηκε **κανονικοποίηση** ώστε να αποφευχθεί η **κυριαρχία** κάποιας μεταβλητής λόγω **διαφορετικής κλίμακας**.
+
+```{r prepare, warning=FALSE}
+# Επιλέγουμε μόνο τις μεταβλητές Ram και Weight για το clustering
+laptopClusterDataRaw <- laptopData[, c("Ram", "Weight")]
+
+# Κανονικοποιούμε τα δεδομένα ώστε να έχουν μέσο όρο 0 και τυπική απόκλιση 1
+laptopClusterData <- scale(laptopClusterDataRaw)
+```
+
+## 🔹 Ιεραρχική συσταδοποίηση
+
+Υπολογίστηκε ο πίνακας αποστάσεων μεταξύ των παρατηρήσεων και κατασκευάστηκε ένα **δενδροδιάγραμμα** με τη μέθοδο *Ward*, η οποία **ελαχιστοποιεί τη διασπορά** εντός των ομάδων. Το διάγραμμα δείχνει τη διαδικασία συγχώνευσης των παρατηρήσεων σε ομάδες.
+
+```{r distances and clustering, warning=FALSE}
+# Υπολογισμός αποστάσεων (ευκλείδεια απόσταση)
+distMatrix <- dist(laptopClusterData, method = "euclidean")
+
+# Δημιουργία του ιεραρχικού δέντρου με μέθοδο σύνδεσης ward.D2
+hcModel <- hclust(distMatrix, method = "ward.D2")
+
+# Οπτικοποίηση του δενδρογράμματος
+plot(hcModel, labels = FALSE, main = "Δενδροδιάγραμμα Ιεραρχικής Συσταδοποίησης")
+```
+
+## 🔹 Δημιουργία συστάδων
+
+Το δενδροδιάγραμμα «κόπηκε» σε **5 επίπεδα** για να προκύψουν πέντε συστάδες. Οι κατηγορίες αποθηκεύτηκαν ως νέα μεταβλητή *HC_Cluster* στο dataset. Η επιλογή 5 clusters θεωρείται κατάλληλη γιατί οι ομάδες που προέκυψαν έχουν σαφή διαχωρισμό στο γράφημα και αντανακλούν **διαφορετικούς τύπους laptops**, όπως: ελαφριά με λίγη RAM, βασικά laptops, ισχυρά με πολλή RAM, βαριά (π.χ. gaming) κ.λπ. Αν είχαμε λιγότερα clusters, θα **χάναμε χρήσιμη πληροφορία**, ενώ περισσότερα θα δυσκόλευαν την ερμηνεία. Τα 5 clusters προσφέρουν καλή **ισορροπία** μεταξύ απλότητας και πληροφορίας. Στο κάθε cluster μπήκαν και **ταιριαστά labels** ανάλογα με τα χαραχτηριστικά τους.
+
+```{r clusters, warning=FALSE}
+# Κατηγοριοποίηση των παρατηρήσεων σε 5 clusters
+clusters_hc <- cutree(hcModel, k = 5)
+
+# Προσθήκη των clusters στο αρχικό dataset
+laptopData$HC_Cluster <- factor(clusters_hc, 
+                                levels = c(1, 2, 3, 4, 5),
+                                labels = c("Basic Lightweight",
+                                           "Basic Heavy",
+                                           "Balanced",
+                                           "High Performance",
+                                           "Gaming/Power Users"))
+
+table(laptopData$HC_Cluster) %>%
+kable(
+    col.names = c("Cluster", "Count"),
+    align = c("l", "l"),  # l = left alignment
+    caption = "Αριθμός εγγραφών ανά συστάδα")
+```
+
+## 🔹 Οπτικοποίηση συστάδων
+
+Οι πέντε συστάδες που προέκυψαν από την ιεραρχική συσταδοποίηση αποτυπώνονται σε διάγραμμα, με **χρωματική διαφοροποίηση** ανά ομάδα. Το γράφημα παρέχει οπτική κατανόηση του τρόπου με τον οποίο χωρίστηκαν τα laptops με βάση τη *RAM* και το *βάρος.*
+
+```{r visual, warning=FALSE}
+ggplot(laptopData, aes(x = Ram, y = Weight, color = HC_Cluster)) +
+  geom_point(size = 2) +
+  labs(title = "Ιεραρχική Συσταδοποίηση Laptops (3 Clusters)",
+       x = "RAM (GB)", y = "Βάρος (kg)", color = "Cluster") +
+  theme_minimal()
+```

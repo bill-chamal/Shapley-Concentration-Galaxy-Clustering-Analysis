@@ -1,0 +1,33 @@
+{
+    "id": "2476D77F",
+    "path": "~/R_Studio/EX12_CLUSTERING/Stars_Clustering/main.Rmd",
+    "project_path": "main.Rmd",
+    "type": "r_markdown",
+    "hash": "3133986410",
+    "contents": "",
+    "dirty": false,
+    "created": 1749890913628.0,
+    "source_on_save": true,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "2,37",
+        "scrollLine": "0",
+        "rmdVisualMode": "false",
+        "rmdVisualWrapConfigured": "true",
+        "docOutlineVisible": "0",
+        "rmdVisualCollapsedChunks": "",
+        "rmdVisualModeLocation": "1419:298"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1749893888,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1749893888008,
+    "read_only": false,
+    "read_only_alternatives": []
+}
