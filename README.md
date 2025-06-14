@@ -2,22 +2,6 @@
 
 This repository contains an R Markdown analysis of the **Shapley Supercluster (SCl 124)**, the largest galaxy concentration in our local universe. The project applies **Hierarchical** and **K-Means** clustering algorithms to identify and analyze distinct galaxy groupings based on physical and spatial characteristics.
 
->  **Note**: The original R Markdown file and comments are written in **Greek**. This README provides a full overview in **English** for international accessibility.
-
----
-
-##  Table of Contents
-
-- [About the Shapley Supercluster](#about-the-shapley-supercluster)
-- [Project Goal](#project-goal)
-- [The Dataset](#the-dataset)
-- [Analysis Pipeline](#analysis-pipeline)
-- [Key Findings](#key-findings)
-- [How to Run the Analysis](#how-to-run-the-analysis)
-- [Dependencies](#dependencies)
-- [Suggestions for Future Research](#suggestions-for-future-research)
-- [Author](#author)
-- [License](#license)
 
 ---
 
