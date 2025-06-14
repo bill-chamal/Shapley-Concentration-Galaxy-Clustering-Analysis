@@ -5,7 +5,7 @@ This repository contains an R Markdown analysis of the **Shapley Supercluster (S
 
 ---
 
-## 🌌 About the Shapley Supercluster
+##  About the Shapley Supercluster
 
 The **Shapley Supercluster**, or **Shapley Concentration (SCl 124)**, is the most massive structure in our local universe. It forms a gravitationally bound system instead of expanding with the Hubble flow.
 
